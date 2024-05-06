@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
+  BackHandler,
   FlatList,
   SafeAreaView,
   StatusBar,
@@ -21,6 +22,24 @@ function App(): React.JSX.Element {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      if (webViewUrl) {
+        setWebViewUrl('');
+      } else {
+        BackHandler.exitApp();
+      }
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [webViewUrl]);
 
   if (webViewUrl) {
     return (
