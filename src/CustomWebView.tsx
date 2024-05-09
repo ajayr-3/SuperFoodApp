@@ -6,7 +6,10 @@ import React, {
   useState,
 } from 'react';
 import {Text, TouchableOpacity, View, ViewStyle} from 'react-native';
-import WebView, {WebViewNavigation} from 'react-native-webview';
+import WebView, {
+  WebViewMessageEvent,
+  WebViewNavigation,
+} from 'react-native-webview';
 import useStyles from './styles';
 
 const CustomWebView = ({
@@ -32,6 +35,21 @@ const CustomWebView = ({
     },
     [],
   );
+  const handleMessage = (event: WebViewMessageEvent) => {
+    // const requestInfo = JSON.parse(event.nativeEvent.data);
+    console.log('event data is:', event);
+    // You can process the network request data here
+  };
+
+  const INJECTED_JAVASCRIPT = `(function() {
+    var open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function() {
+        this.addEventListener("load", function() {
+            var message = {"status" : this.status, "response" : this.response}
+            window.ReactNativeWebView.postMessage({message});
+        });
+        open.apply(this, arguments);
+    };})();`;
 
   return (
     <View style={styles.flex1}>
@@ -40,6 +58,8 @@ const CustomWebView = ({
         source={{uri: url}}
         style={style}
         allowsBackForwardNavigationGestures
+        injectedJavaScript={INJECTED_JAVASCRIPT}
+        onMessage={handleMessage}
         onNavigationStateChange={handleWebViewNavigationStateChange}
         onShouldStartLoadWithRequest={request => {
           // not working
