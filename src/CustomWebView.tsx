@@ -1,6 +1,6 @@
-import React, {Dispatch, SetStateAction} from 'react';
+import React, {Dispatch, SetStateAction, useCallback, useRef} from 'react';
 import {Text, TouchableOpacity, View, ViewStyle} from 'react-native';
-import WebView from 'react-native-webview';
+import WebView, {WebViewNavigation} from 'react-native-webview';
 import useStyles from './styles';
 
 const CustomWebView = ({
@@ -13,9 +13,26 @@ const CustomWebView = ({
   setUrl: Dispatch<SetStateAction<string>>;
 }) => {
   const styles = useStyles();
+  const webViewRef = useRef<WebView | null>();
+
+  const handleWebViewNavigationStateChange = useCallback(
+    async (newNavState: WebViewNavigation) => {
+      try {
+        console.log('To url', newNavState.url);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [],
+  );
   return (
     <View style={styles.flex1}>
-      <WebView source={{uri: url}} style={style} />
+      <WebView
+        ref={ref => (webViewRef.current = ref)}
+        source={{uri: url}}
+        style={style}
+        onNavigationStateChange={handleWebViewNavigationStateChange}
+      />
       <View style={styles.crossBtnContainer}>
         <TouchableOpacity
           onPress={() => {
