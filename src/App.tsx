@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Alert,
   BackHandler,
   FlatList,
+  Platform,
   SafeAreaView,
   StatusBar,
   Text,
@@ -10,6 +11,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import {PERMISSIONS, request} from 'react-native-permissions';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import CustomWebView from './CustomWebView';
 import appsListData from './Data';
@@ -22,6 +24,21 @@ function App(): React.JSX.Element {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  const requestLocation = useCallback(async () => {
+    try {
+      const locationPermRes = await request(
+        Platform.OS === 'android'
+          ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
+          : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+      );
+      if (!['granted', 'limited'].includes(locationPermRes)) {
+        Alert.alert('No Location Permission');
+      }
+    } catch (error) {
+      console.log('Error fetching location', error);
+    }
+  }, []);
 
   useEffect(() => {
     const backAction = () => {
@@ -40,6 +57,10 @@ function App(): React.JSX.Element {
 
     return () => backHandler.remove();
   }, [webViewUrl]);
+
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
 
   if (webViewUrl) {
     return (
